@@ -6,6 +6,8 @@ UA="User-Agent: Mozilla/5.0 (Windows NT 5.1) AppleWebKit/535.11 (KHTML, like Gec
 alias WGET="wget -q --header='$UA'"
 ALL=proxyall.list
 OKS=proxyoks.list
+TPL=index.tpl
+WEB=index.html
 TMP=$$.log
 
 shopt -s expand_aliases
@@ -138,12 +140,16 @@ function checkip()
 
     http_proxy="http://$ip:$port" wget -q -t 1 --timeout=2 www.baidu.com -O $tmp
     local ret=$?
-    local size=$(du -b $tmp | cut -d$'\t' -f1)
+    local size=0
+    
+    if [ -f $tmp ]; then
+        size=$(du -b $tmp | cut -d$'\t' -f1)
+        rm $tmp
+    fi
 
     if [ $size -lt 80000 ]; then
         ret=1
     fi
-    rm $tmp
 
     return $ret
 }
@@ -167,24 +173,44 @@ allnum=$(wc -l $ALL | cut -d' ' -f1)
 
 #head -n 50 $ALL | (
 cat $ALL | (
-        hit=0
         IFS=:
+        hitnum=0
+        n=0
         while read ip port; do
             addr=$(getipaddr $ip)
-            echo -ne "$hit/$allnum: $ip:$port\t->\t$addr ... "
+            echo -ne "$n/$allnum: $ip:$port\t->\t$addr ... "
             checkip $ip $port
             isup=$?
             if [ $isup -eq 0 ]; then
-                hit=$((hit + 1))
+                hitnum=$((hitnum + 1))
                 echo "OK"
                 echo "$ip:$port:$addr" >>$OKS
+                echo "$ip:$port:$addr" >>$OKS
+
+                lines=$lines$(
+                if [ $((n % 2)) -eq 1 ]; then
+                    echo "<tr class='alt'>"
+                else
+                    echo "<tr>"
+                fi
+                echo "<td>$n</td>"
+                echo "<td>$ip</td>"
+                echo "<td>$port</td>"
+                echo "<td>$addr</td>"
+                echo "</tr>"
+                )
+
             else
                 echo "FAILED"
             fi
+            n=$((n + 1))
         done
-        per=$(echo -e "scale=2\n $hit/$allnum * 100" | bc)
+        per=$(echo -e "scale=2\n $hitnum/$allnum * 100" | bc)
         ipnum=$(cut -d: -f1 $OKS | sort -u | wc -l)
-        echo "DDD RESULT: all: $allnum, hit: $hit, $hit / $allnum = $per %, ip: $ipnum"
+        echo "DDD RESULT: all: $allnum, hit: $hitnum, $hitnum / $allnum = $per %, ip: $ipnum"
+
+        eval "echo \"$(< $TPL)\"" >$WEB
         )
+
 echo "DDD $(date)  end..."
 
