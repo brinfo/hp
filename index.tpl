@@ -42,7 +42,7 @@
 $lines
 </table>
 <br>
-update: $(date)<br>
-result: all: $allnum, hit: $hitnum, $hitnum / $allnum = $per %, ip: $ipnum
+Update: $(date)<br>
+Result: all: $allnum, hit: $hitnum, $hitnum / $allnum = $per %, ip: $ipnum, cost: $coststr
 </body>
 </html>
