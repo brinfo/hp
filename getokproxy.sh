@@ -154,8 +154,9 @@ function checkip()
     return $ret
 }
 
-echo "DDD $(date) start..."
+echo "DDD $(date) $0 start..."
 
+t0=$(date +%s%3N)
 cd $(dirname $0)
 
 if [ $# -eq 0 ]; then
@@ -166,7 +167,8 @@ if [ $# -eq 0 ]; then
 fi
 cut -d: -f1,2 $OKS >>$ALL
 sort -uR $ALL >$TMP
-mv $TMP $ALL
+grep '^[0-9.:]*$' $TMP >$ALL
+sed -i '/^[0-9.:]*$/!d' $TMP
 
 >$OKS
 allnum=$(wc -l $ALL | cut -d' ' -f1)
@@ -188,12 +190,12 @@ cat $ALL | (
                 echo "$ip:$port:$addr" >>$OKS
 
                 lines=$lines$(
-                if [ $((n % 2)) -eq 1 ]; then
+                if [ $((hitnum % 2)) -eq 1 ]; then
                     echo "<tr class='alt'>"
                 else
                     echo "<tr>"
                 fi
-                echo "<td>$n</td>"
+                echo "<td>$hitnum</td>"
                 echo "<td>$ip</td>"
                 echo "<td>$port</td>"
                 echo "<td>$addr</td>"
@@ -207,10 +209,15 @@ cat $ALL | (
         done
         per=$(echo -e "scale=2\n $hitnum/$allnum * 100" | bc)
         ipnum=$(cut -d: -f1 $OKS | sort -u | wc -l)
-        echo "DDD RESULT: all: $allnum, hit: $hitnum, $hitnum / $allnum = $per %, ip: $ipnum"
+        t1=$(date +%s%3N)
+        cost=$(($t1 - $t0))
+        costs=$((cost / 1000))
+        costms=$((cost % 1000))
+        coststr=$((costs / 3600)):$(( (costs % 3600) / 60)):$(( (costs % 3600) % 60 )).$costms
+        echo "DDD RESULT: all: $allnum, hit: $hitnum, $hitnum / $allnum = $per %, ip: $ipnum, cost: ${coststr}"
 
         eval "echo \"$(< $TPL)\"" >$WEB
         )
 
-echo "DDD $(date)  end..."
+echo "DDD $(date)  $0 end..."
 
