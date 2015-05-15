@@ -29,6 +29,7 @@
     background-color:#EAF2D3;
 }
 </style>
+<title>Available Proxy List</title>
 </head>
 <body>
 <h2>Available Proxy List</h2>

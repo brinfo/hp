@@ -125,7 +125,7 @@ function getipaddr()
         grep '<ul class="ul1">' |
         grep '<li>[^<]*' -o |
         head -n 1 |
-        cut -c23-
+        cut -c11-
 }
 
 function checkip()
@@ -214,7 +214,7 @@ cat $ALL | (
         costs=$((cost / 1000))
         costms=$((cost % 1000))
         coststr=$((costs / 3600)):$(( (costs % 3600) / 60)):$(( (costs % 3600) % 60 )).$costms
-        echo "DDD RESULT: all: $allnum, hit: $hitnum, $hitnum / $allnum = $per %, ip: $ipnum, cost: ${coststr}"
+        echo "DDD RESULT: all: $allnum, hit: $hitnum, $hitnum / $allnum = $per %, ip: $ipnum, cost: $coststr"
 
         eval "echo \"$(< $TPL)\"" >$WEB
         )
